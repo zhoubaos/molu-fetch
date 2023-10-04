@@ -1,0 +1,14 @@
+# 忽略目录
+.idea/
+.vscode/
+.github/
+public/
+node_modules/
+src/
+
+# 忽略指定文件
+vite.config.ts
+tsconfig.json
+.gitignore
+.npmrc
+.prettierrc.js
