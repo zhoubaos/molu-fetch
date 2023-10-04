@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    /*基本选项*/
+    "target": "ES2015",
+    "module": "ESNext", // 使用 ES Module 格式打包编译后的文件
+    "sourceMap": true, //生成.map文件
+    "lib": [ // 项目中使用的库
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "declaration": true, // 是否生成 .d.ts 类型定义文件
+    "declarationDir": "lib",
+    "useDefineForClassFields": true, // 开启后可以使用class定义类时，可以在constructor外定义实例属性
+
+    /*严格类型检查*/
+    "strict": true, // 启用所有严格类型检查
+    "noImplicitAny": false,  //不允许隐私any类型
+
+    /*模块解析*/
+    "moduleResolution": "node",  //模块解析策略
+    "allowSyntheticDefaultImports": true, //允许从没有默认导出的模块默认导入
+    /*试验行属性*/
+    "experimentalDecorators": true, // 启用实验性的装饰器特性
+    "emitDecoratorMetadata": true // 为装饰器提供元数据支持
+  },
+  "include": [
+    "src"
+  ],
+}

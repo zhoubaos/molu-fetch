@@ -1,0 +1,32 @@
+# 自动发包npm包工作流
+name: npm-publish  #工作流名字
+
+on: #定义触发该工作流的事件
+  push: #当创建一个tag标签时触发
+    tags:
+      - v*
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    name: npm-publish
+
+    environment: npm
+    # 定义job的步骤
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/setup-node@v3  # 指定node安装版本和npm源
+        with:
+          node-version: 16.x
+          registry-url: https://registry.npmjs.org
+      # 先下载依赖，然后打包构建
+      - name: Install and Build
+        run: |      
+          npm install
+          npm run build # 这项目的打包命令
+      # 发布npm包
+      - name: Publish to the npm registry
+        run: npm publish --access public # 执行发布命令
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH }} # 设置的npm的token
