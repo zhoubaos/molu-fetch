@@ -1,6 +1,6 @@
 {
   "name": "@strive_molu/fetch",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "description": "基于axios的前端请求库",
   "type": "module",
