@@ -9,6 +9,7 @@ src/
 # 忽略指定文件
 vite.config.ts
 tsconfig.json
+package-lock.json
 .gitignore
 .npmrc
-.prettierrc.js
+.prettierrc
