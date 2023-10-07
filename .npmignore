@@ -4,7 +4,6 @@
 .github/
 public/
 node_modules/
-dd/
 src/
 
 # 忽略指定文件
