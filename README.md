@@ -1,6 +1,14 @@
+
+
+## 安装
+
+```bash
+npm install @strive_molu/fetch
+```
+
 ## 介绍
 
-基于axios进行封装的接口请求类，支持get，post，delete，put请求方法。同时支持接口请求错误自动重新请求，自动取消重复的接口请求。
+基于axios进行封装的接口请求类，支持get，post，delete，put请求方法。同时支持接口请求错误自动重新请求，取消重复的接口请求，取消所有正在发送的请求。
 
 ## 构造函数参数
 
@@ -12,10 +20,10 @@
 **创建实例**
 
 ```typescript
-import KjFetch from '@/utils/KjFetch';
+import MoluFetch from '@strive_molu/fetch';
 
 const baseUrl ='/api';
-const kjFetch = new KjFetch({
+const moluFetch = new MoluFetch({
   baseUrl,
   timeout: 20000
 });
@@ -28,11 +36,11 @@ const kjFetch = new KjFetch({
 接口请求方法。返回一个promise对象。
 
 ```javascript
-import KjFetch from '@/utils/KjFetch';
+import MoluFetch from '@strive_molu/fetch';
 
-let kjFetch = new KjFetch();
+let moluFetch = new MoluFetch();
 
-kjFetch.request({
+moluFetch.request({
   url: '/xxx',
   //其他参数配置
 }).then((res) => {
