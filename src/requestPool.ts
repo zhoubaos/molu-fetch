@@ -14,17 +14,18 @@ export default class RequestPool {
     addRequest(config, CancelToken) {
         const key = this._getRequestKey(config); //获取请求参数唯一key
         const source = CancelToken.source();
+        // 接口未重复
         if (!this.requestPool.has(key)) {
             this.requestPool.set(key, config);
             this._sourceCancelPool.set(key, source);
 
             return {
-                isRepeat: true,
+                isRepeat: false,
                 token: source.token
             };
         }
         return {
-            isRepeat: false,
+            isRepeat: true,
             token: ''
         };
     }
