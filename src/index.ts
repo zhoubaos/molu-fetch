@@ -17,7 +17,7 @@ const CONTENT_TYPE_REFLECT = {
  */
 const SUPPORT_METHOD = ['get', 'post', 'put', 'delete'];
 
-class KjFetch {
+class MoluFetch {
     globalBaseUrl: string = '/api';
     globalTimeout: number = 20000; //接口超时
     private _defaultReqOptions = {
@@ -25,6 +25,7 @@ class KjFetch {
         retryTimes: 1,
         contentType: 'urlencoded',
         isHandleReturnData: true,
+        isHandleErrorReturnData: true,
         isCancelRepeatRequest: true
     };
     private _instance: AxiosInstance | null = null; //axios实例
@@ -41,16 +42,18 @@ class KjFetch {
     request(requestOptions: RequestOptions) {
         const mergeOptions = this._getMergeRequestOptions(requestOptions) as Required<RequestOptions>; //合并请求配置
         const reqParamterConfig = this._getRequestParameter(mergeOptions); //获取api请求参数
-        // 如果已经有相同的请求，返回错误信息。
         const {isRepeat, token} = this._requestPool.addRequest(reqParamterConfig, CancelToken);
-        if (!isRepeat) {
+        // 如果isCancelRepeatRequest为true，且接口重复
+        if (mergeOptions.isCancelRepeatRequest && isRepeat) {
             return Promise.reject({message: '重复请求'});
         } else {
             reqParamterConfig.cancelToken = token; //给没给请求设置token，用于随时取消请求
         }
         // console.log('===合并配置===', mergeOptions);
         // console.log('===请求参数===', reqParamterConfig);
-        return this._request(reqParamterConfig, mergeOptions.retryTimes, mergeOptions.isHandleReturnData);
+
+        const {retryTimes, isHandleSuccessReturnData, isHandleErrorReturnData} = mergeOptions;
+        return this._request(reqParamterConfig, retryTimes, isHandleSuccessReturnData, isHandleErrorReturnData);
     }
 
     /**
@@ -89,23 +92,22 @@ class KjFetch {
     /**
      * @function axios请求方法
      */
-    private _request(requestConfig: AxiosRequestConfig, retryTimes: number, isHandleReturnData: boolean) {
+    private _request(requestConfig: AxiosRequestConfig, retryTimes: number, isHandleSuccessReturnData: boolean, isHandleErrorReturnData: boolean) {
         retryTimes--;
         return (this._instance as AxiosInstance)
             .request({...requestConfig})
             .then((res) => {
                 if (this.customJudgeSuccess(res.data)) {
-                    return this._handleSuccessFn(res, requestConfig, isHandleReturnData);
+                    return this._handleSuccessFn(res, requestConfig, isHandleSuccessReturnData);
                 } else {
-                    // throw this._handleSuccessFn(res, requestConfig, isHandleReturnData, true);
                     throw res;
                 }
             })
             .catch((error) => {
                 if (retryTimes >= 1) {
-                    return this._request(requestConfig, retryTimes, isHandleReturnData);
+                    return this._request(requestConfig, retryTimes, isHandleSuccessReturnData, isHandleErrorReturnData);
                 }
-                throw this._handleErrorFn(error, requestConfig, isHandleReturnData);
+                throw this._handleErrorFn(error, requestConfig, isHandleErrorReturnData);
             })
             .finally(() => {
                 this._requestPool.removefinishRequest(requestConfig);
@@ -124,16 +126,19 @@ class KjFetch {
     }
 
     /**
-     * @function 处理请求失败参数
+     * @function 处理请求失败错误函数
+     * @param error 返回错误信息
+     * @param requestConfig 接口请求参数
+     * @param isHandleReturnData 是否处理返回错误数据
+     * @private
      */
     private _handleErrorFn(error, requestConfig, isHandleReturnData) {
         if (isHandleReturnData) {
-            const {code, msg, info} = error;
-            // const { status } = error?.response;
+            const {codeError, message} = error; //接口请求失败，如超时，接口报错等错误
+            const {msg, info,code} = error.data ?? {}; //接口请求成功，但不能正常返回数据。
             return {
-                // status: status ?? undefined,
-                code: code ?? undefined,
-                message: msg ?? info,
+                code: codeError ?? code ?? undefined,
+                message: message ?? msg ?? info,
                 errorText: this._errorCodeType(code)
             };
         } else {
@@ -146,7 +151,7 @@ class KjFetch {
      * @function 请求错误状态码
      * @param code
      */
-    private _errorCodeType(code: number) {
+    private _errorCodeType(code: number | string) {
         let errMessage = '';
         switch (code) {
             case 400:
@@ -184,6 +189,9 @@ class KjFetch {
                 break;
             case 505:
                 errMessage = 'http版本不支持该请求';
+                break;
+            case 'ECONNABORTED':
+                errMessage = '请求超时';
                 break;
             default:
                 errMessage = `未知错误 --${code}`;
@@ -261,7 +269,8 @@ class KjFetch {
             timeout: (data) => isBasicType(data, 'number'),
             retryTimes: (data) => isBasicType(data, 'number') && data >= 1,
             contentType: (data) => Object.keys(CONTENT_TYPE_REFLECT).includes(data),
-            isHandleReturnData: (data) => isBasicType(data, 'boolean'),
+            isHandleSuccessReturnData: (data) => isBasicType(data, 'boolean'),
+            isHandleErrorReturnData: (data) => isBasicType(data, 'boolean'),
             isCancelRepeatRequest: (data) => isBasicType(data, 'boolean')
         };
 
@@ -278,38 +287,38 @@ class KjFetch {
      */
     private _initializaAxios() {
         this._instance = axios.create({baseURL: this.globalBaseUrl, timeout: this.globalTimeout});
-        this._instance.interceptors.request.use(this._axiosRequestInterceptorsSuccess, this._axiosRequestInterceptorsError);
+        this._instance.interceptors.request.use(this.axiosRequestInterceptorsSuccess, this.axiosRequestInterceptorsError);
         this._instance.interceptors.response.use(
-            this._axiosResponseInterceptorsSuccess,
-            this._axiosResponseInterceptorsError
+            this.axiosResponseInterceptorsSuccess,
+            this.axiosResponseInterceptorsError
         );
     }
 
     /**
-     * @function axios请求拦截器--成功
+     * @function axios请求拦截器
      */
-    _axiosRequestInterceptorsSuccess(config) {
+    axiosRequestInterceptorsSuccess(config) {
         return config;
     }
 
     /**
-     * @function axios请求拦截器--失败
+     * @function axios请求拦截器--请求发生错误
      */
-    _axiosRequestInterceptorsError(error) {
+    axiosRequestInterceptorsError(error) {
         throw error;
     }
 
     /**
      * @function axios响应拦截器--响应成功，状态码为2xx以内
      */
-    _axiosResponseInterceptorsSuccess(res) {
+    axiosResponseInterceptorsSuccess(res) {
         return res;
     }
 
     /**
      * @function axios响应拦截器--响应失败，状态码码为2xx以外
      */
-    _axiosResponseInterceptorsError(error) {
+    axiosResponseInterceptorsError(error) {
         throw error;
     }
 
@@ -329,4 +338,6 @@ class KjFetch {
     };
 }
 
-export default KjFetch;
+
+export type{GlobalConfig,RequestOptions}
+export default MoluFetch;
