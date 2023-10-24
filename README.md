@@ -125,7 +125,7 @@ moluFetch.customSuccessHandle = (res, requestConfig) => {
 
 ### customErrorHandle
 
-请求失败处理方法，可以用来上传错误日志。在请求参数`isHandleErrorReturnData`属性为false时生效。
+请求失败处理方法，在请求参数`isHandleErrorReturnData`属性为false时生效。
 
 ```javascript
 import MoluFetch from '@strive_molu/fetch';
@@ -140,6 +140,25 @@ let moluFetch = new MoluFetch();
 moluFetch.customErrorHandle = (error, requestConfig) => {
   return error;
 };
+```
+
+### getErrorText
+
+获取接口错误返回信息。可以用于全局进行错误提示，上传错误日志。
+
+```javascript
+import MoluFetch from '@strive_molu/fetch';
+
+let moluFetch = new MoluFetch();
+
+/**
+ * @function 获取错误信息
+ * @param errorObj 错误信息对象
+ *
+ */
+moluFetch.getErrorText = (errorObj) => {
+    // ElMessage.error(....)
+}
 ```
 
 ### axiosRequestInterceptorsSuccess
@@ -208,6 +227,7 @@ moluFetch.axiosResponseInterceptorsError=(error)=>{
 
 ```typescript
 import MoluFetch,type{RequestOptions} from '@strive_molu/fetch';
+import { ElMessage } from 'element-plus';
 
 const moluFetch = new MoluFetch({
   timeout: 20000
@@ -225,6 +245,11 @@ moluFetch.customSuccessHandle = (res, requestConfig) => {
 moluFetch.customErrorHandle = (error) => {
   return error.data;
 };
+
+moluFetch.getErrorText = (errorObj) => {
+    // 注意，如果是自己自定义函数返回的错误信息，错误文本字段不一定是 message 
+    ElMessage.error(errorObj.message)
+}
 
 export const request = <T = any>(requestOptions: RequestOptions): Promise<T> => {
   return kjFetch.request({

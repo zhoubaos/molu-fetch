@@ -88,6 +88,14 @@ class MoluFetch {
         return false;
     }
 
+    /**
+     * @function 获取全局错误信息
+     * @param error
+     */
+    getErrorText(error:any){
+
+    }
+
     // custom
     /**
      * @function axios请求方法
@@ -133,18 +141,21 @@ class MoluFetch {
      * @private
      */
     private _handleErrorFn(error, requestConfig, isHandleReturnData) {
+        let errorText:any | null=null;
         if (isHandleReturnData) {
             const {codeError, message} = error; //接口请求失败，如超时，接口报错等错误
             const {msg, info,code} = error.data ?? {}; //接口请求成功，但不能正常返回数据。
-            return {
+             errorText={
                 code: codeError ?? code ?? undefined,
                 message: message ?? msg ?? info,
                 errorText: this._errorCodeType(code)
             };
         } else {
             const customError: any = this.customErrorHandle(error, requestConfig);
-            return customError ?? error;
+            errorText = customError ?? error;
         }
+        this.getErrorText(errorText)
+        return errorText
     }
 
     /**
