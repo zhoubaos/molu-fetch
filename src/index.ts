@@ -82,17 +82,15 @@ class MoluFetch {
      * @param res
      */
     customJudgeSuccess(result): boolean {
-        if (result.info == 'Success' && result.status == 1) {
-            return true;
-        }
-        return false;
+        return result.info == 'Success' && result.status == 1;
+
     }
 
     /**
-     * @function 获取全局错误信息
+     * @function 获取错误源信息
      * @param error
      */
-    getErrorText(error:any){
+    getSourceError(error:any){
 
     }
 
@@ -141,21 +139,21 @@ class MoluFetch {
      * @private
      */
     private _handleErrorFn(error, requestConfig, isHandleReturnData) {
-        let errorText:any | null=null;
+        this.getSourceError(error);
+        let errorObj:any | null=null;
         if (isHandleReturnData) {
             const {codeError, message} = error; //接口请求失败，如超时，接口报错等错误
             const {msg, info,code} = error.data ?? {}; //接口请求成功，但不能正常返回数据。
-             errorText={
+             errorObj={
                 code: codeError ?? code ?? undefined,
                 message: message ?? msg ?? info,
                 errorText: this._errorCodeType(code)
             };
         } else {
             const customError: any = this.customErrorHandle(error, requestConfig);
-            errorText = customError ?? error;
+            errorObj = customError ?? error;
         }
-        this.getErrorText(errorText)
-        return errorText
+        return errorObj
     }
 
     /**

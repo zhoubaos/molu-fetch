@@ -142,9 +142,9 @@ moluFetch.customErrorHandle = (error, requestConfig) => {
 };
 ```
 
-### getErrorText
+### getSourceError
 
-获取接口错误返回信息。可以用于全局进行错误提示，上传错误日志。
+获取接口错误源信息。可以用于全局进行错误提示，上传错误日志。
 
 ```javascript
 import MoluFetch from '@strive_molu/fetch';
@@ -156,8 +156,8 @@ let moluFetch = new MoluFetch();
  * @param errorObj 错误信息对象
  *
  */
-moluFetch.getErrorText = (errorObj) => {
-    // ElMessage.error(....)
+moluFetch.getSourceError = (error) => {
+    // ......
 }
 ```
 
@@ -245,10 +245,9 @@ moluFetch.customSuccessHandle = (res, requestConfig) => {
 moluFetch.customErrorHandle = (error) => {
   return error.data;
 };
-
-moluFetch.getErrorText = (errorObj) => {
-    // 注意，如果是自己自定义函数返回的错误信息，错误文本字段不一定是 message 
-    ElMessage.error(errorObj.message)
+//  获取错误源信息（未经过任何处理的错误信息）
+moluFetch.getSourceError = (error) => {
+  //.....
 }
 
 export const request = <T = any>(requestOptions: RequestOptions): Promise<T> => {
