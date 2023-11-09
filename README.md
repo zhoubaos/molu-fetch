@@ -251,9 +251,10 @@ moluFetch.getSourceError = (error) => {
 }
 
 export const request = <T = any>(requestOptions: RequestOptions): Promise<T> => {
-  return kjFetch.request({
+  return moluFetch.request({
     //可以全局配置接口的一些参数，如下
     // isHandleSuccessReturnData: false,  //内部不处理接口成功返回的数据。
+    // header:{}   //请求头设置一些token  
     ...requestOptions,
   });
 };

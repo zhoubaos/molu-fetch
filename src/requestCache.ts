@@ -1,41 +1,40 @@
 import {Md5} from 'ts-md5'; //md5加密
+import type{ RequestCacheItem} from "./types";
 
-export default class RequestPool {
-    requestPool: Map<any, any> = new Map(); //api请求池
-    delayTime: number = 200; //请求成功后延迟多少毫秒再进行下一次请求
-    constructor(delay?: number) {
-        delay && (this.delayTime = delay);
-    }
+export default class RequestCache {
+    requestCachePool:Map<string,RequestCacheItem>=new Map(); //缓存
 
     /**
-     * @function 在请求链接池添加接口
+     * @function 添加请求缓存数据
+     * @param config
+     * @param data 缓存数据
+     * @param time 缓存时间
      */
-    addRequest(config) {
+    addRequestCache(config,data:any,time:number){
         const key = this._getRequestKey(config); //获取请求参数唯一key
-        // 接口未重复
-        if (!this.isExistRequest(config)) {
-            this.requestPool.set(key, config);
-        }
+        this.requestCachePool.set(key,{
+            data,
+            endTime:Date.now()+Number(time)
+        })
     }
+
     /**
-     * @function 判断当前请求是否存在于请求池
+     * @function 判断当前请求是否有缓存值且未过期
      * @param config
      */
-    isExistRequest(config){
+    isExistRequestCache(config){
         const key = this._getRequestKey(config); //获取请求参数唯一key
-        return this.requestPool.has(key)
+        console.log(this.requestCachePool.get(key)?.endTime)
+        return this.requestCachePool.has(key) && (this.requestCachePool.get(key)?.endTime as number >= Date.now())
     }
 
     /**
-     * @function 从请求池中删除已完成的api
-     * @param config 请求参数
-     * @param type 类型 success | error
+     * @function 获取缓存值
+     * @param config
      */
-    removefinishRequest(config) {
-        const key = this._getRequestKey(config);
-        setTimeout(() => {
-            this.requestPool.delete(key);
-        }, this.delayTime);
+    getCacheData(config){
+         const key = this._getRequestKey(config); //获取请求参数唯一key
+        return this.requestCachePool.get(key)?.data
     }
 
     /**
@@ -49,7 +48,7 @@ export default class RequestPool {
     }
 
     /**
-     * @function 把目标对象内的所有值转为字符串
+     * @function 把目标对象内的所有值转为字符串，用于后续获取hash值
      * @param target
      * @returns
      */
@@ -68,4 +67,5 @@ export default class RequestPool {
         });
         return str;
     }
+
 }

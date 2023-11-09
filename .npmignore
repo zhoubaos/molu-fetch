@@ -5,6 +5,7 @@
 public/
 node_modules/
 src/
+example/
 
 # 忽略指定文件
 vite.config.ts
@@ -12,4 +13,4 @@ tsconfig.json
 package-lock.json
 .gitignore
 .npmrc
-.prettierrc
+.prettierrc.js

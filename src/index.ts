@@ -1,8 +1,11 @@
-import axios, {type AxiosInstance, AxiosRequestConfig, AxiosError} from 'axios';
+import axios, {type AxiosInstance, AxiosRequestConfig} from 'axios';
 import RequestPool from './requestPool';
+import RequestCache from './requestCache';
 import {type GlobalConfig, RequestOptions} from './types';
 
-const CancelToken = axios.CancelToken;
+// 用于取消接口请求
+const controller  = new AbortController();
+const {signal }=controller ;
 /**
  * @constant 请求头content-type 映射
  */
@@ -24,12 +27,16 @@ class MoluFetch {
         method: 'get',
         retryTimes: 1,
         contentType: 'urlencoded',
+        cacheTime:10 * 1000,
+        isCacheRequest:false,
         isHandleReturnData: true,
         isHandleErrorReturnData: true,
         isCancelRepeatRequest: true
     };
     private _instance: AxiosInstance | null = null; //axios实例
+    private _controller =  new AbortController();  //取消接口请求实例
     private _requestPool: RequestPool = new RequestPool(); //api请求池
+    private _requestCache:RequestCache =new RequestCache();  //api缓存
 
     constructor(globalConfig?: GlobalConfig) {
         globalConfig && this._initializaGlobalConfig(globalConfig); //初始化全局配置参数
@@ -42,16 +49,17 @@ class MoluFetch {
     request(requestOptions: RequestOptions) {
         const mergeOptions = this._getMergeRequestOptions(requestOptions) as Required<RequestOptions>; //合并请求配置
         const reqParamterConfig = this._getRequestParameter(mergeOptions); //获取api请求参数
-        const {isRepeat, token} = this._requestPool.addRequest(reqParamterConfig, CancelToken);
-        // 如果isCancelRepeatRequest为true，且接口重复
-        if (mergeOptions.isCancelRepeatRequest && isRepeat) {
-            return Promise.reject({message: '重复请求'});
-        } else {
-            reqParamterConfig.cancelToken = token; //给没给请求设置token，用于随时取消请求
+        // 如果取消重复请求
+        if(mergeOptions.isCancelRepeatRequest){
+            // 如果已经有相同的api正在请求
+            if(this._requestPool.isExistRequest(reqParamterConfig)){
+                return Promise.reject({message: '重复请求'});
+            }else{
+                this._requestPool.addRequest(reqParamterConfig); //保存当前请求的api
+            }
         }
         // console.log('===合并配置===', mergeOptions);
         // console.log('===请求参数===', reqParamterConfig);
-
         const {retryTimes, isHandleSuccessReturnData, isHandleErrorReturnData} = mergeOptions;
         return this._request(reqParamterConfig, retryTimes, isHandleSuccessReturnData, isHandleErrorReturnData);
     }
@@ -60,7 +68,8 @@ class MoluFetch {
      * @function 取消全部正在请求的接口
      */
     cancelAllPendingRequest() {
-        this._requestPool.cancelAllRequest();
+        this._controller.abort('手动取消请求');
+        // this._requestPool.cancelAllRequest();
     }
 
     /**
@@ -103,7 +112,7 @@ class MoluFetch {
         return (this._instance as AxiosInstance)
             .request({...requestConfig})
             .then((res) => {
-                if (this.customJudgeSuccess(res.data)) {
+                if (this.customJudgeSuccess(res?.data)) {
                     return this._handleSuccessFn(res, requestConfig, isHandleSuccessReturnData);
                 } else {
                     throw res;
@@ -220,7 +229,9 @@ class MoluFetch {
      * @function 获取请求参数
      */
     private _getRequestParameter(options) {
-        const parameter: any = {};
+        const parameter: any = {
+            signal:this._controller.signal
+        };
         const defaultApiKey = ['url', 'method', 'headers']; //请求参数默认key
         for (const item of defaultApiKey) {
             Object.keys(options).includes(item) && (parameter[item] = options[item]);
