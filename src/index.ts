@@ -69,7 +69,7 @@ class MoluFetch {
      */
     cancelAllPendingRequest() {
         this._controller.abort('手动取消请求');
-        // this._requestPool.cancelAllRequest();
+        this._controller = new AbortController();
     }
 
     /**
@@ -99,9 +99,7 @@ class MoluFetch {
      * @function 获取错误源信息
      * @param error
      */
-    getSourceError(error:any){
-
-    }
+    getSourceError(error:any){}
 
     // custom
     /**
