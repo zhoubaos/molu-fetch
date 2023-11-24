@@ -226,14 +226,13 @@ moluFetch.axiosResponseInterceptorsError=(error)=>{
 ## 例子
 
 ```typescript
-import MoluFetch,type{RequestOptions} from '@strive_molu/fetch';
-import { ElMessage } from 'element-plus';
+import MoluFetch,{RequestOptions} from '@strive_molu/fetch';
 
 const moluFetch = new MoluFetch({
   timeout: 20000
 });
 
-//自定义判断接口是否成功方法。默认 res.info == 'Success' && res.status == 1 判断成功
+//自定义判断接口是否成功方法。如果不自定义该函数，默认通过 res.info == 'Success' && res.status == 1 判断成功
 moluFetch.customSuccessHandle = (res) => {
   return true;
 };
@@ -245,7 +244,8 @@ moluFetch.customSuccessHandle = (res, requestConfig) => {
 moluFetch.customErrorHandle = (error) => {
   return error.data;
 };
-//  获取错误源信息（未经过任何处理的错误信息）
+//  获取错误源信息（未经过任何处理的错误信息，错误可能是接口请求错误或者是接口请求成功，但不能通过 moluFetch.customSuccessHandle 方法校验返回的错误）
+// 可以处理token失效，上传错误日志等错误
 moluFetch.getSourceError = (error) => {
   //.....
 }
