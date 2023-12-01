@@ -233,7 +233,7 @@ const moluFetch = new MoluFetch({
 });
 
 //自定义判断接口是否成功方法。如果不自定义该函数，默认通过 res.info == 'Success' && res.status == 1 判断成功
-moluFetch.customSuccessHandle = (res) => {
+moluFetch.customJudgeSuccess = (res) => {
   return true;
 };
 // 自定义接口请求成功处理函数，isHandleReturnData 属性为false生效
