@@ -1,6 +1,9 @@
-:::tip
-https://github.com/zhoubaos/strive-molu-axios
-:::
+---
+> ## ⚠️ 项目更新.
+>
+> 该库的升级版请查看[strive-molu-axios](https://github.com/zhoubaos/strive-molu-axios).
+> 
+---
 
 ## 安装
 
