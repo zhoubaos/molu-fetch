@@ -327,14 +327,14 @@ class MoluFetch {
     }
 
     /**
-     * @function axios响应拦截器--响应成功，状态码为2xx以内
+     * @function axios响应拦截器--响应成功，状态码包括2xx和1xx
      */
     axiosResponseInterceptorsSuccess(res) {
         return res;
     }
 
     /**
-     * @function axios响应拦截器--响应失败，状态码码为2xx以外
+     * @function axios响应拦截器--响应失败，状态码码在3xx及以上
      */
     axiosResponseInterceptorsError(error) {
         throw error;
