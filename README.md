@@ -1,13 +1,10 @@
 ---
-> ## ⚠️ 项目更新.
+> ## ⚠️ 项目更新
 >
 > 该库的升级版请查看[strive-molu-axios](https://github.com/zhoubaos/strive-molu-axios).
 > 
 ---
 
-:::tip
-sf
-:::
 ## 安装
 
 ```bash
